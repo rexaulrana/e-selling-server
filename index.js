@@ -1,9 +1,10 @@
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
-require("dotenv").config();
-
-const cors = require("cors");
 const app = express();
+const cors = require("cors");
+require("dotenv").config();
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+
+const port = process.env.PORT || 5000;
 
 // middleware
 app.use(cors());
@@ -22,7 +23,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     // Send a ping to confirm a successful connection
 
     const database = client.db("e-selling");
@@ -68,7 +69,7 @@ async function run() {
       const result = await cartCollection.findOne(query);
       // const result = await cursor.toArray();
       res.send(result);
-      console.log(result);
+      // console.log(result);
     });
     // app.get("/allProducts/:products", async (req, res) => {
     //   const products = req.params.brandName;
@@ -131,7 +132,7 @@ async function run() {
       res.send(result);
       console.log(result);
     });
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
@@ -141,8 +142,6 @@ async function run() {
   }
 }
 run().catch(console.dir);
-
-const port = process.env.PORT || 5000;
 
 app.get("/", (req, res) => {
   res.send("Selling.........");
