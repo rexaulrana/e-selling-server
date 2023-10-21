@@ -44,11 +44,31 @@ async function run() {
       res.send(result);
     });
 
+    // read single product
+    app.get("/allProducts/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await productCollection.findOne(query);
+      // const result = await cursor.toArray();
+      res.send(result);
+    });
+
     // get my cart items
     app.get("/myCart", async (req, res) => {
       const cursor = cartCollection.find();
       const result = await cursor.toArray();
       res.send(result);
+    });
+    // read single cart item
+    app.get("/myCart/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await cartCollection.findOne(query);
+      // const result = await cursor.toArray();
+      res.send(result);
+      console.log(result);
     });
     // app.get("/allProducts/:products", async (req, res) => {
     //   const products = req.params.brandName;
@@ -78,10 +98,38 @@ async function run() {
 
     app.delete("/myCart/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: id };
+      const query = { _id: new ObjectId(id) };
       const result = await cartCollection.deleteOne(query);
       // console.log(id);
       res.send(result);
+    });
+
+    // update item
+    app.put("/update/:id", async (req, res) => {
+      const id = req.params.id;
+      const item = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateItem = {
+        $set: {
+          productName: item.productName,
+          description: item.description,
+
+          brandName: item.brandName,
+          image: item.image,
+
+          price: item.image,
+          price: item.price,
+          rating: item.rating,
+        },
+      };
+      const result = await productCollection.updateOne(
+        filter,
+        updateItem,
+        options
+      );
+      res.send(result);
+      console.log(result);
     });
     await client.db("admin").command({ ping: 1 });
     console.log(
