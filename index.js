@@ -3,12 +3,32 @@ const app = express();
 const cors = require("cors");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://e-selling-227e0.web.app"],
+    credentials: true,
+  })
+);
 app.use(express.json());
+app.use(cookieParser());
+
+// custom middleware
+const verifyToken = async (req, res, next) => {
+  const token = req.cookies.token;
+  console.log("tokenVerify", token);
+  if (!token) {
+    res.send({ message: "Unauthorized" });
+  }
+
+  next();
+};
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6rml2ff.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -30,6 +50,21 @@ async function run() {
     const collectionBrand = database.collection("brandCollection");
     const productCollection = database.collection("products");
     const cartCollection = database.collection("cart");
+
+    // jwt
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign({ user }, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res
+        .cookie("Token", token, {
+          httpOnly: true,
+          secure: false,
+        })
+        .send({ success: true });
+      // console.log("TOken is:", token);
+    });
 
     // get all brands
     app.get("/brands", async (req, res) => {
@@ -82,7 +117,7 @@ async function run() {
     //   res.send(result);
     // });
     // create product
-    app.post("/addProduct", async (req, res) => {
+    app.post("/addProduct", verifyToken, async (req, res) => {
       const addedProducts = req.body;
       const result = await productCollection.insertOne(addedProducts);
       res.send(result);
